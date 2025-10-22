@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import type Konva from "konva";
+import type * as ReactKonva from "react-konva";
 
 type Box = { x: number; y: number; w: number; h: number } | null;
 
@@ -49,14 +50,14 @@ export default function KonvaAnnotator({
 
   const stageW = Math.round(naturalW * scale);
   const stageH = Math.round(naturalH * scale);
-  const stageRef = useRef<any | null>(null);
+  const stageRef = useRef<Konva.Stage | null>(null);
 
   const [drawing, setDrawing] = useState(false);
   const [start, setStart] = useState<{ x: number; y: number } | null>(null);
   const [currentBox, setCurrentBox] = useState<Box>(null);
   const [finalBox, setFinalBox] = useState<Box>(null);
 
-  const [konvaModule, setKonvaModule] = useState<any | null>(null);
+  const [konvaModule, setKonvaModule] = useState<typeof ReactKonva | null>(null);
 
   useEffect(() => {
     setCurrentBox(null);

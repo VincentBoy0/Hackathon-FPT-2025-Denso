@@ -23,6 +23,30 @@ export default function DatasetPage(): JSX.Element {
     setImages((prev) => [...prev, ...newImages]);
   };
 
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
+  const requestDelete = (index: number) => {
+    setDeleteIndex(index);
+  };
+
+  const performDelete = (index: number) => {
+    const target = images[index];
+    if (!target) return;
+    try {
+      URL.revokeObjectURL(target.url);
+    } catch {
+      // ignore
+    }
+    setImages((prev) => prev.slice(0, index).concat(prev.slice(index + 1)));
+    if (selectedImage && selectedImage.url === target.url) {
+      setSelectedImage(null);
+      setBox(null);
+    }
+    setDeleteIndex(null);
+  };
+
+  const cancelDelete = () => setDeleteIndex(null);
+
   // KonvaAnnotator replaces manual mouse handlers and provides stable coordinates
 
   // normalizeBox is handled inside KonvaAnnotator; we keep box as normalized natural-pixel coords
@@ -55,19 +79,30 @@ export default function DatasetPage(): JSX.Element {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {images.map((img, i) => (
-          <div
-            key={i}
-            className="relative border rounded-lg overflow-hidden shadow-sm hover:shadow-md cursor-pointer"
-            onClick={() => {
-              setSelectedImage(img);
-              setBox(null);
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={img.url} alt={img.name} className="w-full h-40 object-cover" />
-            <p className="absolute bottom-0 bg-black/50 text-white text-xs text-center w-full truncate p-1">
-              {img.name}
-            </p>
+          <div key={i} className="relative border rounded-lg overflow-hidden shadow-sm hover:shadow-md">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                requestDelete(i);
+              }}
+              aria-label={`Delete ${img.name}`}
+              className="absolute right-1 top-1 z-10 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700"
+            >
+              ✕
+            </button>
+            <div
+              className="cursor-pointer"
+              onClick={() => {
+                setSelectedImage(img);
+                setBox(null);
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.url} alt={img.name} className="w-full h-40 object-cover" />
+              <p className="absolute bottom-0 bg-black/50 text-white text-xs text-center w-full truncate p-1">
+                {img.name}
+              </p>
+            </div>
           </div>
         ))}
       </div>
@@ -127,6 +162,19 @@ export default function DatasetPage(): JSX.Element {
           </div>
         </div>
       )}
+
+        {deleteIndex !== null && (
+          <div className="fixed inset-0 bg-black/50 z-60 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-semibold mb-2">Confirm delete</h3>
+              <p className="text-sm text-gray-700 mb-4">Are you sure you want to delete <strong>{images[deleteIndex]?.name}</strong>? This cannot be undone.</p>
+              <div className="flex justify-end gap-2">
+                <button onClick={cancelDelete} className="px-3 py-1 rounded bg-gray-200">Cancel</button>
+                <button onClick={() => performDelete(deleteIndex)} className="px-3 py-1 rounded bg-red-600 text-white">Delete</button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }
