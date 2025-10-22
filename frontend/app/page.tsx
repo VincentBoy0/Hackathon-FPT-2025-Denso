@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import Sidebar from "@/components/Sidebar";
+// Sidebar is provided by `app/layout.tsx` so we don't import it here.
 
 export default function DashboardPage() {
-  const [models, setModels] = useState([
+  const [models] = useState([
     { id: 1, name: "Model v1.0", status: "Deployed" },
     { id: 2, name: "Model v1.1", status: "Training" },
     { id: 3, name: "Model v2.0", status: "Pending" },

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+// @ts-expect-error: allow importing global CSS without type declarations
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 
@@ -16,9 +17,9 @@ const geistMono = localFont({
 });
 
 
-export const metadata = {
-  title: "AI Factory Dashboard",
-  description: "Factory AI monitoring system",
+export const metadata: Metadata = {
+  title: "DENSO AI Factory Dashboard",
+  description: "DENSO AI Factory monitoring system",
 };
 
 export default function RootLayout({
@@ -28,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="flex bg-gray-50 min-h-screen">
+      <body className={`${geistSans.variable} ${geistMono.variable} flex bg-gray-50 min-h-screen`}>
         <Sidebar />
         <main className="flex-1 p-8 overflow-y-auto">{children}</main>
       </body>
