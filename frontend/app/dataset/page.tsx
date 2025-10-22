@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { get_all_labels, add_new_label, delete_label } from "@/api/label";
 
 // load Konva annotator only on the client to avoid server-side 'canvas' dependency
 const KonvaAnnotator = dynamic(() => import("@/components/KonvaAnnotator"), { ssr: false });
@@ -22,7 +23,23 @@ export default function DatasetPage(): JSX.Element {
   const [showCreateLabel, setShowCreateLabel] = useState(false);
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelSolution, setNewLabelSolution] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
+  async function fetchLabels() {
+    setIsLoading(true);
+    try {
+      const data = await get_all_labels();
+      setLabels(data);
+    } catch (error) {
+      console.error('Failed to fetch labels:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchLabels();
+  }, []);
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
     const newImages = files.map((file) => ({
@@ -50,20 +67,20 @@ export default function DatasetPage(): JSX.Element {
     }
   }, [labels]);
 
-  const createLabel = (name: string, solution: string) => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const label: Label = { id, name, solution, items: [] };
-    setLabels((prev) => [...prev, label]);
-    setShowCreateLabel(false);
-    setNewLabelName("");
-    setNewLabelSolution("");
-    return id;
-  };
+  // const createLabel = (name: string, solution: string) => {
+  //   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  //   const label: Label = { id, name, solution, items: [] };
+  //   setLabels((prev) => [...prev, label]);
+  //   setShowCreateLabel(false);
+  //   setNewLabelName("");
+  //   setNewLabelSolution("");
+  //   return id;
+  // };
 
-  const deleteLabel = (id: string) => {
-    setLabels((prev) => prev.filter((l) => l.id !== id));
-    if (selectedLabelId === id) setSelectedLabelId(null);
-  };
+  // const deleteLabel = (id: string) => {
+  //   setLabels((prev) => prev.filter((l) => l.id !== id));
+  //   if (selectedLabelId === id) setSelectedLabelId(null);
+  // };
 
   const addImageToLabel = (labelId: string, image: ImageItem, boxData: Box) => {
     setLabels((prev) =>
@@ -155,10 +172,12 @@ export default function DatasetPage(): JSX.Element {
               <div className="flex gap-2 justify-end">
                 <button onClick={() => setShowCreateLabel(false)} className="px-3 py-1">Cancel</button>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!newLabelName.trim()) return;
-                    const id = createLabel(newLabelName.trim(), newLabelSolution.trim());
+                    const id = await add_new_label(newLabelName.trim(), newLabelSolution.trim());
                     setSelectedLabelId(id);
+                    fetchLabels();
+                    setShowCreateLabel(false)
                   }}
                   className="px-3 py-1 bg-green-600 text-white rounded"
                 >
@@ -174,10 +193,30 @@ export default function DatasetPage(): JSX.Element {
               <div key={l.id} className={`p-2 rounded border ${selectedLabelId === l.id ? 'bg-white' : 'bg-transparent'}`}>
                 <div className="flex items-center justify-between">
                   <button onClick={() => setSelectedLabelId(l.id)} className="text-left text-sm font-medium">{l.name}</button>
-                  <button onClick={() => deleteLabel(l.id)} className="text-xs text-red-600">Delete</button>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        await delete_label(Number(l.id));
+                        // Optimistically remove from UI first
+                        setLabels(prev => prev.filter(label => label.id !== l.id));
+                        if (selectedLabelId === l.id) setSelectedLabelId(null);
+                      } catch (error) {
+                        console.error('Failed to delete label:', error);
+                        // On error, refresh the list
+                        fetchLabels();
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }} 
+                    disabled={isLoading}
+                    className="text-xs text-red-600 disabled:opacity-50"
+                  >
+                    Delete
+                  </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1 truncate">{l.solution}</p>
-                <div className="mt-2 text-xs text-gray-600">{l.items.length} item(s)</div>
+                {/* <div className="mt-2 text-xs text-gray-600">{labels.length} item(s)</div> */}
               </div>
             ))}
           </div>
@@ -235,11 +274,11 @@ export default function DatasetPage(): JSX.Element {
                     </div>
                     <div className="absolute left-1 bottom-8 flex items-center gap-2">
                       {/* assigned labels badges */}
-                      <div className="flex gap-1">
-                        {labels.filter((l) => l.items.some((it) => it.url === img.url)).map((l) => (
-                          <span key={l.id} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">{l.name}</span>
-                        ))}
-                      </div>
+                      {/* <div className="flex gap-1"> */}
+                        {/* {labels.filter((l) => l.items.some((it) => it.url === img.url)).map((l) => ( */}
+                          {/* <span key={l.id} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">{l.name}</span> */}
+                        {/* ))} */}
+                      {/* </div> */}
                       {/* per-image assign removed; assignment done in modal */}
                     </div>
                     {selectedImage && selectedLabelId && selectedImage.url === img.url && (
