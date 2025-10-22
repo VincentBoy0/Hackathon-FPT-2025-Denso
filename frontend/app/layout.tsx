@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "AI Factory Dashboard",
   description: "Factory AI monitoring system",
 };
@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="flex bg-gray-50 min-h-screen">
+      <body className={`${geistSans.variable} ${geistMono.variable} flex bg-gray-50 min-h-screen`}>
         <Sidebar />
         <main className="flex-1 p-8 overflow-y-auto">{children}</main>
       </body>
