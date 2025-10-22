@@ -5,7 +5,7 @@ import * as React from "react";
 export default function Sidebar(): JSX.Element {
   return (
     <div className="h-screen w-64 bg-white border-r p-6 flex flex-col">
-      <h2 className="text-xl font-bold mb-6 text-blue-600">AI Factory</h2>
+      <h2 className="text-xl font-bold mb-6 text-blue-600">DENSO AI Factory</h2>
       <nav className="space-y-3 flex-1">
         <a href="/" className="block p-2 rounded hover:bg-blue-50 font-medium">
           📊 Dashboard

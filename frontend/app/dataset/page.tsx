@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
+
+// load Konva annotator only on the client to avoid server-side 'canvas' dependency
+const KonvaAnnotator = dynamic(() => import("@/components/KonvaAnnotator"), { ssr: false });
 
 type ImageItem = { name: string; url: string };
 type Box = { x: number; y: number; w: number; h: number } | null;
@@ -9,8 +13,6 @@ export default function DatasetPage(): JSX.Element {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [box, setBox] = useState<Box>(null);
-  const [drawing, setDrawing] = useState(false);
-  const [currentBox, setCurrentBox] = useState<Box>(null);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
@@ -21,38 +23,9 @@ export default function DatasetPage(): JSX.Element {
     setImages((prev) => [...prev, ...newImages]);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const startX = e.clientX - rect.left;
-    const startY = e.clientY - rect.top;
-    setDrawing(true);
-    setCurrentBox({ x: startX, y: startY, w: 0, h: 0 });
-  };
+  // KonvaAnnotator replaces manual mouse handlers and provides stable coordinates
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    if (!drawing || !currentBox) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const newW = e.clientX - rect.left - currentBox.x;
-    const newH = e.clientY - rect.top - currentBox.y;
-    setCurrentBox({ ...currentBox, w: newW, h: newH });
-  };
-
-  const handleMouseUp = () => {
-    if (drawing && currentBox && Math.abs(currentBox.w) > 10 && Math.abs(currentBox.h) > 10) {
-      setBox(normalizeBox(currentBox));
-    }
-    setDrawing(false);
-    setCurrentBox(null);
-  };
-
-  const normalizeBox = (b: NonNullable<Box>): Box => {
-    const { x, y, w, h } = b;
-    const nx = w < 0 ? x + w : x;
-    const ny = h < 0 ? y + h : y;
-    const nw = Math.abs(w);
-    const nh = Math.abs(h);
-    return { x: nx, y: ny, w: nw, h: nh };
-  };
+  // normalizeBox is handled inside KonvaAnnotator; we keep box as normalized natural-pixel coords
 
   const handleSaveLabel = () => {
     if (!box || !selectedImage) return;
@@ -105,7 +78,7 @@ export default function DatasetPage(): JSX.Element {
           onClick={() => setSelectedImage(null)}
         >
           <div
-            className="relative bg-white p-4 rounded-lg max-w-5xl w-full mx-4"
+            className="relative bg-white p-4 rounded-lg max-w-5xl w-full mx-4 max-h-[80vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-2">
@@ -118,39 +91,13 @@ export default function DatasetPage(): JSX.Element {
             </div>
 
             <div className="relative inline-block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <KonvaAnnotator
                 src={selectedImage.url}
-                alt={selectedImage.name}
-                className="max-h-[80vh] object-contain rounded-lg select-none"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
+                onSave={(b) => {
+                  // b is in natural image pixels (x,y,w,h)
+                  setBox(b);
+                }}
               />
-
-              {box && (
-                <div
-                  className="absolute border-2 border-red-500"
-                  style={{
-                    left: box.x,
-                    top: box.y,
-                    width: box.w,
-                    height: box.h,
-                  }}
-                />
-              )}
-
-              {drawing && currentBox && (
-                <div
-                  className="absolute border-2 border-blue-500"
-                  style={{
-                    left: currentBox.x,
-                    top: currentBox.y,
-                    width: currentBox.w,
-                    height: currentBox.h,
-                  }}
-                />
-              )}
             </div>
 
             <div className="mt-4 flex items-center justify-between gap-4">

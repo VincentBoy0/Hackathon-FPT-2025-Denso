@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+// @ts-expect-error: allow importing global CSS without type declarations
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 
@@ -17,8 +18,8 @@ const geistMono = localFont({
 
 
 export const metadata: Metadata = {
-  title: "AI Factory Dashboard",
-  description: "Factory AI monitoring system",
+  title: "DENSO AI Factory Dashboard",
+  description: "DENSO AI Factory monitoring system",
 };
 
 export default function RootLayout({
