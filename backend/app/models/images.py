@@ -18,7 +18,7 @@ class Image(SQLModel, table=True):
     url: str = Field(..., max_length=255)
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     status: ImageStatus = Field(default=ImageStatus.ready, index=True)
-    annotations: list["Annotation"] = Relationship(back_populates="image")
+    annotation: Optional["Annotation"] = Relationship(back_populates="image")
 
     # Create indexes for frequently queried fields
     __table_args__ = (
@@ -36,7 +36,7 @@ class Annotation(SQLModel, table=True):
     __tablename__ = "annotations"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    bounding_boxes: Optional[str] = Field(
+    bounding_box: Optional[str] = Field(
         default=None,
         sa_column=Column(JSON)
     )
@@ -45,5 +45,5 @@ class Annotation(SQLModel, table=True):
     label_id: Optional[int] = Field(default=None, foreign_key="label.id")
     
     # Relationships
-    image: Optional[Image] = Relationship(back_populates="annotations")
+    image: Optional[Image] = Relationship(back_populates="annotation")
     label: Optional[Label] = Relationship(back_populates="annotations")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 from sqlmodel import Session
 from app.database import get_session
 from app.models.images import Label
@@ -23,3 +23,10 @@ def add_label(input: LabelSchema, db: Session = Depends(get_session)):
     db.commit()
     db.refresh(new_label)
     return new_label
+
+@router.delete("/{id}")
+def delete_label(id: int, db: Session = Depends(get_session)):
+    label = db.get(Label, id)
+    db.delete(label)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT, content="Deleted successfuly")
