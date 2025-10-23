@@ -3,7 +3,7 @@ from sqlmodel import SQLModel
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routers import (
-    test, image, label, annotation
+    test, image, label, annotation, upload
 )
 from app.database import engine
 
@@ -25,6 +25,7 @@ app.include_router(test.router)
 app.include_router(image.router)
 app.include_router(label.router)
 app.include_router(annotation.router)
+app.include_router(upload.router)
 #--------------------------------------------------------------------------------------------------
 
 

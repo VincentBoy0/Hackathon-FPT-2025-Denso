@@ -31,6 +31,21 @@ export async function apiPost<T = any>(path: string, data: T) {
 	return res.json();
 }
 
+export async function apiPost1(url: string, data: any) {
+  const res = await fetch(`${API_URL}${url}`, {
+    method: "POST",
+    body: data, // <-- raw FormData, NOT JSON
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    console.error("Upload failed:", res.status, err);
+    throw new Error(`Upload failed: ${res.status}`);
+  }
+
+  return await res.json();
+}
+
 export async function apiDelete(path: string, body?: unknown) {
 	const opts: RequestInit = { method: 'DELETE' };
 	if (body !== undefined) {

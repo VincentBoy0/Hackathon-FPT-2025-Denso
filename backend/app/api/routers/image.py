@@ -1,4 +1,6 @@
+import os
 from fastapi import APIRouter, Depends
+from fastapi.responses import FileResponse
 from sentry_sdk import end_session
 from sqlalchemy import select
 from sqlmodel import Session
@@ -17,6 +19,13 @@ def upload_image(form: ImageInput, db: Session = Depends(get_session)):
     db.commit()
     db.refresh(image)
     return image
+
+@router.get("/{filename}")
+def get_image(filename: str):
+    file_path = os.oath.join("/static/images", filename)
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
 
 # @router.get("/{image_id}")
 # def get_image_info(image_id: int, db: Session =  Depends(get_session)):

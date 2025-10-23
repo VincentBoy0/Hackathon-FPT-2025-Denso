@@ -29,4 +29,4 @@ def delete_label(id: int, db: Session = Depends(get_session)):
     label = db.get(Label, id)
     db.delete(label)
     db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT, content="Deleted successfuly")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

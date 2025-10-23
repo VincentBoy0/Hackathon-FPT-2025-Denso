@@ -14,7 +14,6 @@ class AnnotationInput(SQLModel):
     image_id: int
     label_id: int
     bounding_box: Dict
-    created_at: datetime
 
     class Config:
         from_attributes = True

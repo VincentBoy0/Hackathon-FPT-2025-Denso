@@ -2,7 +2,7 @@ import { apiGet, apiPost, apiDelete } from "@/lib/api";
 
 export async function get_all_labels() {
     try {
-        const data = await apiGet('/label');
+        const data = await apiGet('/label/');
         return data;
     } catch (error) {
         console.error('error fetching labels:', error);
@@ -25,7 +25,7 @@ interface LabelForm {
 export async function add_new_label(name: string, solution: string | null) {
     try {
         const payload = { name, solution: solution ?? undefined };  // changed
-        const response = await apiPost('/label', payload);
+        const response = await apiPost('/label/', payload);
         return response;
     } catch (error) {
         console.error('error adding new label:', error);

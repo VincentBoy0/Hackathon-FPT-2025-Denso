@@ -24,7 +24,7 @@ class ImageInfo(SQLModel):
 
 class ImageInput(SQLModel):
     url: str
-    stauts: ImageStatus
+    status: ImageStatus
 
     class Config:
         from_attributes = True
