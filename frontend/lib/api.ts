@@ -46,6 +46,19 @@ export async function apiPost1(url: string, data: any) {
   return await res.json();
 }
 
+export async function apiPost2(url: string, image_path: string) {
+	const res = await fetch(`${API_URL}${url}?img_path=${image_path}`, {
+		method: "POST",
+	});
+
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}));
+		console.error("Request failed:", res.status, err);
+		throw new Error(`Request failed: ${res.status}`);
+	}
+
+	return await res.json();
+}
 export async function apiDelete(path: string, body?: unknown) {
 	const opts: RequestInit = { method: 'DELETE' };
 	if (body !== undefined) {

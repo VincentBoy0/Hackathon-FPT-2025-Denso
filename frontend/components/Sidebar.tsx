@@ -16,6 +16,9 @@ export default function Sidebar(): JSX.Element {
         <a href="/dataset" className="block p-2 rounded hover:bg-blue-50 font-medium">
           🧠 Dataset
         </a>
+        <a href="/inference" className="block p-2 rounded hover:bg-blue-50 font-medium">
+          🚀 Inference
+        </a>
         <a href="/incidents" className="block p-2 rounded hover:bg-blue-50 font-medium">
           ⚠️ Incidents
         </a>
