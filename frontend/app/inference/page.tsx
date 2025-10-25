@@ -8,11 +8,9 @@ export default function InferencePage() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadResp, setUploadResp] = useState<any>(null);
-  const [inferenceResult, setInferenceResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(0);
   const [error, setError] = useState<string | null>(null); 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [haveInference, setHaveInference] = useState(false);
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     setError(null);
@@ -28,14 +26,13 @@ export default function InferencePage() {
 
   async function handleUpload() {
     setError(null);
-    setInferenceResult(null);
     if (!file) {
       setError("Please choose an image to upload.");
       return;                                                                                       
     }
 
     try {
-      setLoading(true);
+      setLoading(1);
       const form = new FormData();
       // field name used by backend may vary; 'file' is common
       form.append("file", file);
@@ -45,13 +42,12 @@ export default function InferencePage() {
       console.error(err);
       setError("Upload failed. See console for details.");
     } finally {
-      setLoading(false);
+      setLoading(0);
     }
   }
 
   async function handleGetInference() {
     setError(null);
-    setInferenceResult(null);
     // try to determine image name from upload response; fall back to local file name
     let imageName: string | undefined;
     if (uploadResp) {
@@ -69,15 +65,31 @@ export default function InferencePage() {
     const imagePath = `.${imageName}`;
 
     try {
-      setLoading(true);
-      const res = await get_inference_results(imagePath);
-      setInferenceResult(res);
-      setPreviewUrl("/output_with_boxes.jpg");
+      setLoading(2);
+      await get_inference_results(imagePath);
+
+      // Try to fetch the generated image directly, bypassing browser cache.
+      // Simple retry loop in case the server needs a moment to write the file.
+      const fetchOutput = async (retries = 6, delayMs = 500) => {
+        for (let i = 0; i < retries; i++) {
+          // include a timestamp to further avoid any caches
+          const resp = await fetch(`/output_with_boxes.jpg?ts=${Date.now()}`, { cache: "no-store" });
+          if (resp.ok) {
+            const blob = await resp.blob();
+            return URL.createObjectURL(blob);
+          }
+          await new Promise((r) => setTimeout(r, delayMs));
+        }
+        throw new Error("Output image not available after retries");
+      };
+
+      const blobUrl = await fetchOutput();
+      setPreviewUrl(blobUrl);
     } catch (err: any) {
       console.error(err);
       setError("Inference request failed. See console for details.");
     } finally {
-      setLoading(false);
+      setLoading(0);
     }
   }
 
@@ -105,17 +117,17 @@ export default function InferencePage() {
         <button
           className="px-4 py-2 bg-blue-600 text-white rounded"
           onClick={handleUpload}
-          disabled={loading}
+          disabled={loading !== 0}
         >
-          {loading ? "Uploading..." : "Upload Image"}
+          {loading === 1 ? "Uploading..." : "Upload Image"}
         </button>
 
         <button
           className="px-4 py-2 bg-green-600 text-white rounded"
           onClick={handleGetInference}
-          disabled={loading}
+          disabled={loading !== 0}
         >
-          {loading ? "Please wait..." : "Get Inference"}
+          {loading === 2 ? "Please wait..." : "Get Inference"}
         </button>
       </div>
 
