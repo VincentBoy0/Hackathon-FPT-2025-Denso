@@ -8,7 +8,7 @@ from app.schemas.label import LabelSchema
 # 1. Import the library
 from inference_sdk import InferenceHTTPClient
 import base64
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import io
 
 
@@ -48,16 +48,28 @@ def draw_bounding_boxes(image_path, predictions):
         y = pred['y']
         width = pred['width']
         height = pred['height']
+
         
         # Calculate the coordinates of the bounding box
         left = x - width / 2
         top = y - height / 2
         right = x + width / 2
         bottom = y + height / 2
+        box_side = max(width, height)
+        font_size = max(18, int(box_side * 0.3))
+        try:
+            font = ImageFont.truetype("arial.ttf", font_size)
+        except OSError:
+            font = ImageFont.load_default()
         
         # Draw the bounding box
         draw.rectangle([left, top, right, bottom], outline="red", width=3)
-    
+        #present the label and confidence
+        label = pred['class']
+        confidence = pred['confidence'] * 100
+        print(label, confidence)
+        draw.text((left, top - 35), f"{label} {confidence:.2f}", fill="red", font=font)
+
     return image
 # Extract predictions from the result
 @router.post("/")
