@@ -73,7 +73,7 @@ def add_label(img_path: str):
     predictions = result[0]['predictions']['predictions']
     output_image = draw_bounding_boxes(img_path, predictions)
     # output_image.show()  # To display the image
-    output_image.save("output_with_boxes.jpg")  # To save the image
+    output_image.save("../frontend/public/output_with_boxes.jpg")  # To save the image
     return result
 @router.post("/viz")
 def viz(b64: str):
