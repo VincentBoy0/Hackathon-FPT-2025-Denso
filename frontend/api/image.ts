@@ -2,7 +2,7 @@ import { apiGet, apiPost1, apiPost } from "@/lib/api";
 
 export async function get_all_images() {
     try {
-        const data = await apiGet('/image/');
+        const data = await apiGet('/images/');
         return data;
     } catch (error) {
         console.error('error fetching labels:', error);

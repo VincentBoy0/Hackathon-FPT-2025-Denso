@@ -1,17 +1,31 @@
 from fastapi import APIRouter, Depends, Response, status
+from fastapi_utils.cbv import cbv
 from sqlmodel import Session
 from app.database import get_session
-from app.models.images import Annotation
-from sqlalchemy import select, func
-from app.schemas.annoation import AnnotationInput
-
+from app.models import Annotation
+from app.schemas import AnnotationInput
+from app.repositories import AnnotationRepostitory
 # http://localhost:8000/label
-router = APIRouter(prefix="/annotation", tags=["Annotation"])
+router = APIRouter(prefix="/annotations", tags=["Annotation"])
 
-@router.post("/")
-def add_annotation(form: AnnotationInput, db: Session = Depends(get_session)):
-    annotation = Annotation(**form.model_dump())
-    db.add(annotation)
-    db.commit()
-    db.refresh(annotation)
-    return annotation
+@cbv(router)
+class AnnotationRouter:
+    annotationRepository: AnnotationRepostitory = Depends(AnnotationRepostitory)
+
+    @router.get("/")
+    def get_all_annotations(self):
+        annotations = self.annotationRepository.get_all()
+        return annotations
+    
+    @router.post("/")
+    def add_annotation(self, form: AnnotationInput):
+        annotation = Annotation(**form.model_dump())
+        self.annotationRepository.save(annotation)
+        return annotation
+    
+    @router.delete("/{id:int}")
+    def delete_annotation(self, id: int):
+        ok = self.annotationRepository.delete_by_id(id)
+        if not ok:
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)

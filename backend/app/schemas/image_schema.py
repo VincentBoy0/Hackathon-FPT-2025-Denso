@@ -22,7 +22,7 @@ class ImageInfo(SQLModel):
     class Config:
         from_attributes = True
 
-class ImageInput(SQLModel):
+class ImageCreate(SQLModel):
     url: str
     status: ImageStatus
 

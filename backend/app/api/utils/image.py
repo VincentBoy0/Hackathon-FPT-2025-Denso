@@ -1,5 +1,7 @@
 from sqlmodel import Session, select, func
-from app.models.images import Image, Annotation, Label
+from app.models.image import Image
+from app.models.label import Label
+from app.models.annotation import Annotation
 from typing import Optional
 
 

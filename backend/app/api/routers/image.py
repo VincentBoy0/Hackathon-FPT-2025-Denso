@@ -1,31 +1,43 @@
 import os
-from fastapi import APIRouter, Depends
+from fastapi_utils.cbv import cbv
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.responses import FileResponse
-from sentry_sdk import end_session
-from sqlalchemy import select
 from sqlmodel import Session
-from app import database
-from app.models.images import Image, Annotation, Label
+from app.models import Image
 from app.database import get_session
-from app.schemas.images import ImageInfo, ImageInput
+from app.schemas import ImageInfo, ImageCreate
+from app.repositories import ImageRepository
+router = APIRouter(prefix="/images", tags=["Image"])
 
-router = APIRouter(prefix="/image", tags=["Image"])
+@cbv(router)
+class ImageRouter:
+    # db: Session = Depends(get_session)
+    imageRepository: ImageRepository = Depends(ImageRepository)
 
+    @router.post("/")
+    def upload_image(self, form: ImageCreate):
+        image = Image(**form.model_dump())
+        self.imageRepository.save(image)
+        return image
+    
+    @router.get("/")
+    def get_all_images(self):
+        images = self.imageRepository.get_all()
+        return images
 
-@router.post("/")
-def upload_image(form: ImageInput, db: Session = Depends(get_session)):
-    image = Image(**form.model_dump())
-    db.add(image)
-    db.commit()
-    db.refresh(image)
-    return image
-
-@router.get("/{filename}")
-def get_image(filename: str):
-    file_path = os.oath.join("/static/images", filename)
-    if os.path.exists(file_path):
-        return FileResponse(file_path)
-    return {"error": "File not found"}
+    @router.get("/{filename}")
+    def get_image(self, filename: str):
+        file_path = os.path.join("/static/images", filename)
+        if os.path.exists(file_path):
+            return FileResponse(file_path)
+        return {"error": "File not found"}
+    
+    @router.delete("/{id:int}")
+    def delete_image(self, id: int):
+        ok = self.imageRepository.delete_by_id(id)
+        if not ok:
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 # @router.get("/{image_id}")
 # def get_image_info(image_id: int, db: Session =  Depends(get_session)):

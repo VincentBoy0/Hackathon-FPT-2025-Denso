@@ -1,32 +1,36 @@
 from fastapi import APIRouter, Depends, Response, status
 from sqlmodel import Session
+from fastapi_utils.cbv import cbv
 from app.database import get_session
-from app.models.images import Label
-from sqlalchemy import select, func
-from app.schemas.label import LabelSchema
+from app.models import Label
+from app.schemas import LabelCreate
+from app.repositories import LabelRepository
 
 # http://localhost:8000/label
-router = APIRouter(prefix="/label", tags=["Label"])
+router = APIRouter(prefix="/labels", tags=["Label"])
 
-@router.get("/")
-def get_all_labels(db: Session = Depends(get_session)):
-    labels = db.exec(select(Label)).scalars().all()
-    return labels
+@cbv(router)
+class LabelRouter:
+    # db: Session = Depends(get_session)
+    labelRepository: LabelRepository = Depends(LabelRepository)
 
-@router.post("/")
-def add_label(input: LabelSchema, db: Session = Depends(get_session)):
-    if (input.solution):
-        new_label = Label(**input.model_dump())
-    else:
-        new_label = Label(name=input.name)
-    db.add(new_label)
-    db.commit()
-    db.refresh(new_label)
-    return new_label
+    @router.get("/")
+    def get_all_labels(self):
+        labels = self.labelRepository.get_all()
+        return labels
 
-@router.delete("/{id}")
-def delete_label(id: int, db: Session = Depends(get_session)):
-    label = db.get(Label, id)
-    db.delete(label)
-    db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    @router.post("/")
+    def add_label(self, input: LabelCreate):
+        if (input.solution):
+            new_label = Label(**input.model_dump())
+        else:
+            new_label = Label(name=input.name)
+        self.labelRepository.save(new_label)
+        return new_label
+
+    @router.delete("/{id}")
+    def delete_label(self, id: int):
+        ok = self.labelRepository.delete_by_id(id)
+        if not ok:
+            return Response(status_code=status.HTTP_404_NOT_FOUND)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)

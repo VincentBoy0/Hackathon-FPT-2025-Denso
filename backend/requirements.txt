@@ -25,6 +25,7 @@ email-validator==2.3.0
 fastapi==0.116.1
 fastapi-cli==0.0.14
 fastapi-cloud-cli==0.3.1
+fastapi-utils==0.8.0
 fonttools==4.60.1
 frozenlist==1.8.0
 greenlet==3.2.4
@@ -52,6 +53,7 @@ pandas==2.3.3
 passlib==1.7.4
 pillow==11.3.0
 propcache==0.4.1
+psutil==5.9.8
 psycopg2==2.9.10
 psycopg2-binary==2.9.11
 py-cpuinfo==9.0.0

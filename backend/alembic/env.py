@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 # Import all models here
-from app.models.images import Image  # Import the Image model
+from app.models.image import Image  # Import the Image model
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

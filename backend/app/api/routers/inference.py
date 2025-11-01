@@ -2,9 +2,8 @@ from unittest import result
 from fastapi import APIRouter, Depends, Response, status
 from sqlmodel import Session
 from app.database import get_session
-from app.models.images import Label
+from app.models import Label
 from sqlalchemy import select, func
-from app.schemas.label import LabelSchema
 # 1. Import the library
 from inference_sdk import InferenceHTTPClient
 import base64
